@@ -45,7 +45,6 @@ class CustomerServiceImplTest {
         customer1.setEmail("empresa_a@gmail.com");
         customer1.setPhone("999666999");
         customer1.setNumberDocument("12345678");
-        customer1.setDateBirthDay("1990-05-22");
 
 
         customer2 = new Customer();
@@ -56,7 +55,6 @@ class CustomerServiceImplTest {
         customer2.setEmail("pedro@gmail.com");
         customer2.setPhone("999333999");
         customer2.setNumberDocument("87654321");
-        customer2.setDateBirthDay("1990-05-22");
 
         listCustomer.add(customer1);
         listCustomer.add(customer2);
