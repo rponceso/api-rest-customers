@@ -8,13 +8,11 @@
 
 package com.nttdata.apirestcustomers.controller;
 
-import com.nttdata.apirestcustomers.model.document.Customer;
 import com.nttdata.apirestcustomers.model.dto.CustomerDto;
 import com.nttdata.apirestcustomers.service.CustomerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,13 +33,11 @@ import java.util.Map;
 @RequestMapping("/api/customers")
 public class CustomerController {
 
-    @Autowired
-    private CircuitBreakerFactory cbFactory;
-
-    Logger logger = LoggerFactory.getLogger(CustomerController.class);
 
     @Autowired
     private CustomerService service;
+
+    Logger logger = LoggerFactory.getLogger(CustomerController.class);
 
     @GetMapping
     public Mono<ResponseEntity<Flux<CustomerDto>>> list() {
@@ -56,13 +52,19 @@ public class CustomerController {
     @GetMapping("/{id}")
     public Mono<ResponseEntity<CustomerDto>> getForId(@PathVariable("id") String id) {
         logger.info("Se obtendra el cliente por Id");
-        return cbFactory
+        return service.getById(id)
+                .map(p -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(p)
+                ) //Mono<ResponseEntity<Plato>>
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+        /*return cbFactory
                 .create("customers")
                 .run(() -> service.getById(id) //Mono<Customer>->Mono<ResponseEntity<Customer>>
                         .map(p -> ResponseEntity.ok()
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .body(p)
-                        )); //Mono<ResponseEntity<Customer>>
+                        )); //Mono<ResponseEntity<Customer>>*/
     }
 
     @PostMapping
@@ -74,7 +76,8 @@ public class CustomerController {
         return monoCustomer.flatMap(cust -> {
             return service.create(cust)
                     .map(c -> {
-                        if (cust.equals("P") || cust.equals("B")) {
+                        logger.info("The customer is of type: " + cust.getCustomerType());
+                        if (cust.getCustomerType().equals("P") || cust.getCustomerType().equals("B")) {
                             logger.info("Customer created successfully");
                             respuesta.put("customer", c);
                             respuesta.put("message", "Customer created successfully");

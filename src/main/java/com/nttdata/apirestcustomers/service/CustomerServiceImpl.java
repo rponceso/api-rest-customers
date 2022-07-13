@@ -11,7 +11,11 @@ package com.nttdata.apirestcustomers.service;
 import com.nttdata.apirestcustomers.model.dto.*;
 import com.nttdata.apirestcustomers.repository.CustomerRepository;
 import com.nttdata.apirestcustomers.util.AppUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.core.ReactiveHashOperations;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,16 +24,34 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@ConditionalOnProperty(name = "cache.enabled", havingValue = "true")
 public class CustomerServiceImpl implements CustomerService {
 
+    private static final String KEY = "customer";
     @Autowired
     private CustomerRepository repository;
 
     @Autowired
     private APIClients apiClients;
 
+    private final CustomerEventsService customerEventsService;
+
+    @Autowired
+    private ReactiveHashOperations<String, String, CustomerDto> hashOperations;
+
+    Logger logger = LoggerFactory.getLogger(CustomerServiceImpl.class);
+
+    @Autowired
+    public CustomerServiceImpl(CustomerEventsService customerEventsService) {
+        this.customerEventsService = customerEventsService;
+    }
+
+
     @Override
     public Mono<CustomerDto> create(CustomerDto customerDto) {
+        logger.info("Received " + customerDto);
+
+        this.customerEventsService.publish(customerDto);
         return Mono.just(customerDto).map(AppUtils::dtoToEntity)
                 .flatMap(repository::save)
                 .map(AppUtils::entityToDto);
@@ -50,7 +72,21 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Mono<CustomerDto> getById(String id) {
-        return repository.findById(id).map(AppUtils::entityToDto);
+        logger.info("Customer fetching from cache-redis:: " + id);
+        return hashOperations.get(KEY, id)
+                .doOnNext(c -> logger.info("Data found in cache-redis"))
+                .switchIfEmpty(this.getFromDatabaseAndCache(id));
+
+    }
+
+    private Mono<CustomerDto> getFromDatabaseAndCache(String id) {
+
+        return repository.findById(id)
+                .map(AppUtils::entityToDto)
+                .flatMap(dto -> {
+                    logger.info("Customer fetching from database:: " + id);
+                    return this.hashOperations.put(KEY, id, dto).thenReturn(dto);
+                });
     }
 
     @Override

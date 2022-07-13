@@ -18,7 +18,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 @Document(collection = "customers")
@@ -58,5 +58,5 @@ public class Customer {
     @NotEmpty
     @Field(name = "dateBirthDay")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dateBirthDay;
+    private String dateBirthDay;
 }

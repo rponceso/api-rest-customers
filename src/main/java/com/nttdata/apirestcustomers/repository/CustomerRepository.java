@@ -10,9 +10,11 @@ package com.nttdata.apirestcustomers.repository;
 
 import com.nttdata.apirestcustomers.model.document.Customer;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.data.redis.core.RedisHash;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@RedisHash
 public interface CustomerRepository extends ReactiveMongoRepository<Customer, String> {
 
     Mono<Customer> findByNumberDocument(String numberDocument);

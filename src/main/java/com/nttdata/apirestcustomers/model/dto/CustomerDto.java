@@ -8,11 +8,16 @@
 
 package com.nttdata.apirestcustomers.model.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CustomerDto {
     private String id;
     private String name;
@@ -21,5 +26,5 @@ public class CustomerDto {
     private String phone;
     private String numberDocument;
     private String customerType;
-    private LocalDate dateBirthDay;
+    private String dateBirthDay;
 }

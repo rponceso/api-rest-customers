@@ -5,8 +5,8 @@ spring:
     config:
       enabled: true
       #uri: http://config-server:8888
-      #uri: http://localhost:8888
-      uri: https://azure-config-server.azurewebsites.net/
+      uri: http://localhost:8888
+      #uri: https://azure-config-server.azurewebsites.net/
       username: prueba
       password: 123456
 
@@ -14,7 +14,8 @@ eureka:
   client:
     service-url:
       #defaultZone: http://eureka-server:8761/eureka
-      #defaultZone: http://localhost:8761/eureka
-      defaultZone: https://azure-eureka-server.azurewebsites.net/eureka
+      defaultZone: http://localhost:8761/eureka
+      #defaultZone: https://azure-eureka-server.azurewebsites.net/eureka
 
-
+cache:
+  enabled: true
